@@ -25,3 +25,10 @@ def test_health_says_not_ok_when_database_is_down(monkeypatch):
 
     assert response.status_code == 503
     assert response.json() == {"status": "not ok"}
+
+
+def test_config_reports_optional_features_off():
+    response = client.get("/api/config")
+
+    assert response.status_code == 200
+    assert response.json() == {"storageEnabled": False, "emailEnabled": False}

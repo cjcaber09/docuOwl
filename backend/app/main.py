@@ -33,3 +33,12 @@ def health(response: Response) -> dict[str, str]:
         return {"status": "ok"}
     response.status_code = status.HTTP_503_SERVICE_UNAVAILABLE
     return {"status": "not ok"}
+
+
+@app.get("/api/config")
+def public_config() -> dict[str, bool]:
+    """Which optional features are on, so the frontend can hide Download and Forgot password.
+
+    Both are off until build step 8 adds the storage bucket and email settings.
+    """
+    return {"storageEnabled": False, "emailEnabled": False}
