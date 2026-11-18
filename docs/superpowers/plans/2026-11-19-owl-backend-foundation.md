@@ -614,9 +614,12 @@ Expected: a new file `alembic/versions/<id>_enable_pgvector.py`. In it, replace 
 ```python
 def upgrade() -> None:
     op.execute("CREATE EXTENSION IF NOT EXISTS vector")
+    # Alembic creates this table before the first migration runs; lock it from Supabase's public Data API right away.
+    op.execute('ALTER TABLE "alembic_version" ENABLE ROW LEVEL SECURITY')
 
 
 def downgrade() -> None:
+    op.execute('ALTER TABLE "alembic_version" DISABLE ROW LEVEL SECURITY')
     op.execute("DROP EXTENSION IF EXISTS vector")
 ```
 
@@ -988,7 +991,7 @@ uv run alembic revision -m "enable row level security"
 In the new `alembic/versions/<id>_enable_row_level_security.py`, add this list below the generated revision lines and replace the bodies of `upgrade()` and `downgrade()`:
 
 ```python
-# Every table in the public schema, including Alembic's own bookkeeping table.
+# The seven Owl tables. (alembic_version was already locked by the "enable pgvector" migration.)
 TABLES = [
     "users",
     "password_resets",
@@ -997,7 +1000,6 @@ TABLES = [
     "conversations",
     "messages",
     "usage",
-    "alembic_version",
 ]
 
 
