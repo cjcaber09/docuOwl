@@ -27,3 +27,22 @@ def test_missing_database_url_is_an_error(monkeypatch):
 
     with pytest.raises(ValidationError):
         Settings(_env_file=None)
+
+
+def test_short_jwt_secret_is_an_error():
+    with pytest.raises(ValidationError):
+        Settings(_env_file=None, database_url="postgresql://u:p@h/db", jwt_secret="too-short")
+
+
+def test_frontend_url_trailing_slash_is_removed():
+    settings = Settings(_env_file=None, database_url="postgresql://u:p@h/db", frontend_url="https://owl.app/")
+
+    assert settings.frontend_url == "https://owl.app"
+
+
+def test_cookies_are_secure_only_for_https():
+    local = Settings(_env_file=None, database_url="postgresql://u:p@h/db", frontend_url="http://localhost:5173")
+    online = Settings(_env_file=None, database_url="postgresql://u:p@h/db", frontend_url="https://owl.app")
+
+    assert local.cookie_secure is False
+    assert online.cookie_secure is True

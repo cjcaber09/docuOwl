@@ -20,6 +20,10 @@ if test_env["DATABASE_URL"] == real_env.get("DATABASE_URL"):
 # Environment variables win over the .env file, so the app now uses the test database.
 os.environ["DATABASE_URL"] = test_env["DATABASE_URL"]
 
+# A throwaway signing secret for tests only, and the frontend address the CSRF check expects.
+os.environ["JWT_SECRET"] = test_env.get("JWT_SECRET") or "test-only-secret-never-used-outside-tests-0123456789"
+os.environ["FRONTEND_URL"] = "http://localhost:5173"
+
 
 @pytest.fixture(scope="session", autouse=True)
 def migrated_test_database():
