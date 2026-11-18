@@ -3,6 +3,8 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, Response, status
 
+from app.auth.csrf import require_same_origin
+from app.auth.routes import router as auth_router
 from app.database import SessionLocal, database_is_reachable
 from app.startup import check_database, mark_interrupted_documents
 
@@ -21,6 +23,8 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(title="Owl API", lifespan=lifespan)
+app.middleware("http")(require_same_origin)
+app.include_router(auth_router)
 
 
 @app.get("/api/health")

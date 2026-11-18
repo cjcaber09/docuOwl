@@ -46,3 +46,16 @@ def db():
     table_names = ", ".join(table.name for table in Base.metadata.sorted_tables)
     with engine.begin() as connection:
         connection.execute(text(f"TRUNCATE {table_names} CASCADE"))
+
+
+@pytest.fixture
+def client(db):
+    """A pretend browser on Owl's own page. Uses `db` so every table is emptied afterwards."""
+    from fastapi.testclient import TestClient
+
+    from app.auth.rate_limit import reset_all_limiters
+    from app.config import get_settings
+    from app.main import app
+
+    reset_all_limiters()
+    return TestClient(app, headers={"Origin": get_settings().frontend_url})
