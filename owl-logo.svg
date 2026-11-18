@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <title>Owl document logo</title>
+  <!-- Page body (fill only) -->
+  <path d="M116 180 C100 130 92 82 130 40 C134 86 176 116 214 120 Q256 108 298 120 C336 116 378 86 382 40 C420 82 412 130 396 180 L396 384 L340 440 L116 440 Z"
+        fill="#F6F1E7"/>
+  <!-- Ears + eye mask as one shape; forehead and cheeks stay cream -->
+  <path d="M116 180 C100 130 92 82 130 40 C134 86 176 116 214 120 Q256 108 298 120 C336 116 378 86 382 40 C420 82 412 130 396 180 L396 236 C376 262 340 272 306 268 C284 266 266 254 256 244 C246 254 228 266 206 268 C172 272 136 262 116 236 Z"
+        fill="#5B2A86"/>
+  <!-- Page outline on top (two-point ear tufts) -->
+  <path d="M116 180 C100 130 92 82 130 40 C134 86 176 116 214 120 Q256 108 298 120 C336 116 378 86 382 40 C420 82 412 130 396 180 L396 384 L340 440 L116 440 Z"
+        fill="none" stroke="#1F2A44" stroke-width="14" stroke-linejoin="round"/>
+  <!-- Folded corner flap -->
+  <path d="M396 384 L340 384 L340 440 Z"
+        fill="#E2D6BF" stroke="#1F2A44" stroke-width="14" stroke-linejoin="round"/>
+
+  <!-- Glasses: temple arms -->
+  <path d="M162 196 L124 184 M350 196 L388 184" stroke="#1F2A44" stroke-width="12" stroke-linecap="round" fill="none"/>
+  <!-- Glasses: lenses -->
+  <circle cx="206" cy="200" r="46" fill="#FFFFFF" stroke="#1F2A44" stroke-width="12"/>
+  <circle cx="306" cy="200" r="46" fill="#FFFFFF" stroke="#1F2A44" stroke-width="12"/>
+  <!-- Glasses: bridge -->
+  <path d="M252 198 Q256 186 260 198" stroke="#1F2A44" stroke-width="12" stroke-linecap="round" fill="none"/>
+
+  <!-- Eyes: big bright iris with darker rim -->
+  <circle cx="208" cy="202" r="30" fill="#FFC23D" stroke="#E07B00" stroke-width="5"/>
+  <circle cx="304" cy="202" r="30" fill="#FFC23D" stroke="#E07B00" stroke-width="5"/>
+  <circle cx="208" cy="202" r="15" fill="#1F2A44"/>
+  <circle cx="304" cy="202" r="15" fill="#1F2A44"/>
+  <circle cx="215" cy="194" r="6" fill="#FFFFFF"/>
+  <circle cx="311" cy="194" r="6" fill="#FFFFFF"/>
+  <circle cx="200" cy="211" r="3" fill="#FFFFFF"/>
+  <circle cx="296" cy="211" r="3" fill="#FFFFFF"/>
+
+  <!-- Beak -->
+  <path d="M256 256 L271 270 L256 292 L241 270 Z" fill="#F2A33A" stroke="#1F2A44" stroke-width="8" stroke-linejoin="round"/>
+
+  <!-- Document text lines doubling as chest feathers -->
+  <path d="M172 330 L340 330 M172 362 L340 362 M172 394 L296 394"
+        stroke="#1F2A44" stroke-width="12" stroke-linecap="round" fill="none"/>
+</svg>
