@@ -25,3 +25,16 @@ def database_is_reachable() -> bool:
         return True
     except Exception:
         return False
+
+
+def tables_without_row_level_security(session: Session) -> list[str]:
+    """Names of tables in the public schema that have Row Level Security turned off."""
+    rows = session.scalars(
+        text(
+            "SELECT c.relname FROM pg_class c "
+            "JOIN pg_namespace n ON n.oid = c.relnamespace "
+            "WHERE n.nspname = 'public' AND c.relkind = 'r' AND NOT c.relrowsecurity "
+            "ORDER BY c.relname"
+        )
+    )
+    return list(rows)

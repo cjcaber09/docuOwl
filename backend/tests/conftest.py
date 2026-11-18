@@ -3,7 +3,9 @@
 import os
 from pathlib import Path
 
+import pytest
 from dotenv import dotenv_values
+from sqlalchemy import text
 
 BACKEND_DIR = Path(__file__).resolve().parent.parent
 
@@ -17,3 +19,26 @@ if test_env["DATABASE_URL"] == real_env.get("DATABASE_URL"):
 
 # Environment variables win over the .env file, so the app now uses the test database.
 os.environ["DATABASE_URL"] = test_env["DATABASE_URL"]
+
+
+@pytest.fixture(scope="session", autouse=True)
+def migrated_test_database():
+    """Bring the test database up to the latest migration once, before any test runs."""
+    from alembic import command
+    from alembic.config import Config
+
+    command.upgrade(Config(str(BACKEND_DIR / "alembic.ini")), "head")
+
+
+@pytest.fixture
+def db():
+    """A database session for one test. Every table is emptied afterwards."""
+    from app.database import SessionLocal, engine
+    from app.models import Base
+
+    with SessionLocal() as session:
+        yield session
+
+    table_names = ", ".join(table.name for table in Base.metadata.sorted_tables)
+    with engine.begin() as connection:
+        connection.execute(text(f"TRUNCATE {table_names} CASCADE"))
