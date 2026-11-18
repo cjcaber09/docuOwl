@@ -30,6 +30,7 @@
 - `/api/health` is public and returns only `{"status": "ok"}` (HTTP 200) or `{"status": "not ok"}` (HTTP 503) (spec section 8).
 - Startup: refuse to start if the database is unreachable or the `vector` extension is missing; mark **every** `processing` document as `failed` with reason "Processing was interrupted, please upload again." (spec section 3).
 - Database rules (spec section 4): unique (`user_id`, `content_hash`) on documents; deleting a document deletes its chunks; deleting a conversation deletes its messages; deleting a user deletes everything of theirs; indexes on `chunks.user_id`, `documents.user_id`, `conversations.user_id`, `messages.conversation_id`; `usage` primary key (`user_id`, `day`).
+- **Row Level Security (RLS) is enabled on every table in the `public` schema**, including `alembic_version`, with no policies. This blocks Supabase's automatic Data API (which uses a public key) from reading or writing any table. The backend connects as the tables' owner, which RLS does not restrict, so Owl keeps working. RLS is standard Postgres, so this stays portable. The backend refuses to start if any `public` table has RLS turned off.
 
 ## File Structure
 
@@ -653,12 +654,12 @@ git commit -m "feat(backend): add Alembic with pgvector migration"
 **Python ideas:** classes with typed attributes (`Mapped[str]`), `None` and optional values (`str | None`), default values, lists, fixtures in pytest (`@pytest.fixture`), helper functions in tests.
 
 **Files:**
-- Modify: `backend/app/models.py`, `backend/tests/conftest.py`
-- Create: `backend/alembic/versions/<id>_create_tables.py` (generated, reviewed), `backend/tests/test_models.py`
+- Modify: `backend/app/models.py`, `backend/app/database.py`, `backend/tests/conftest.py`
+- Create: `backend/alembic/versions/<id>_create_tables.py` (generated, reviewed), `backend/alembic/versions/<id>_enable_row_level_security.py` (hand-written), `backend/tests/test_models.py`
 
 **Interfaces:**
 - Consumes: `Base`, `SessionLocal`, `engine`.
-- Produces: model classes `User`, `PasswordReset`, `Document`, `Chunk`, `Conversation`, `Message`, `Usage`; constant `EMBEDDING_DIMENSIONS = 1024`; pytest fixture `db` (a session on a clean test database).
+- Produces: model classes `User`, `PasswordReset`, `Document`, `Chunk`, `Conversation`, `Message`, `Usage`; constant `EMBEDDING_DIMENSIONS = 1024`; `app.database.tables_without_row_level_security(session) -> list[str]`; pytest fixture `db` (a session on a clean test database).
 
 - [ ] **Step 1: Prepare the test database fixtures**
 
@@ -704,6 +705,7 @@ import pytest
 from sqlalchemy import func, select
 from sqlalchemy.exc import IntegrityError
 
+from app.database import tables_without_row_level_security
 from app.models import EMBEDDING_DIMENSIONS, Chunk, Conversation, Document, Message, User
 
 
@@ -805,12 +807,42 @@ def test_new_conversation_has_a_default_title(db):
     db.commit()
 
     assert conversation.title == "New conversation"
+
+
+def test_every_table_has_row_level_security(db):
+    assert tables_without_row_level_security(db) == []
 ```
 
 - [ ] **Step 3: Run them and watch them fail**
 
 ```bash
 cd backend
+uv run pytest tests/test_models.py
+```
+
+Expected: FAIL with `ImportError: cannot import name 'tables_without_row_level_security' from 'app.database'`.
+
+- [ ] **Step 3b: Add the RLS check helper**
+
+Add to `backend/app/database.py` (the `Session` and `text` imports are already there):
+
+```python
+def tables_without_row_level_security(session: Session) -> list[str]:
+    """Names of tables in the public schema that have Row Level Security turned off."""
+    rows = session.scalars(
+        text(
+            "SELECT c.relname FROM pg_class c "
+            "JOIN pg_namespace n ON n.oid = c.relnamespace "
+            "WHERE n.nspname = 'public' AND c.relkind = 'r' AND NOT c.relrowsecurity "
+            "ORDER BY c.relname"
+        )
+    )
+    return list(rows)
+```
+
+Run again:
+
+```bash
 uv run pytest tests/test_models.py
 ```
 
@@ -947,21 +979,55 @@ Open the new `alembic/versions/<id>_create_tables.py` and check, before applying
 
 If anything else appears (for example a table you don't recognize being dropped), stop and ask before continuing.
 
+- [ ] **Step 5b: Turn on Row Level Security in its own migration**
+
+```bash
+uv run alembic revision -m "enable row level security"
+```
+
+In the new `alembic/versions/<id>_enable_row_level_security.py`, add this list below the generated revision lines and replace the bodies of `upgrade()` and `downgrade()`:
+
+```python
+# Every table in the public schema, including Alembic's own bookkeeping table.
+TABLES = [
+    "users",
+    "password_resets",
+    "documents",
+    "chunks",
+    "conversations",
+    "messages",
+    "usage",
+    "alembic_version",
+]
+
+
+def upgrade() -> None:
+    # With RLS on and no policies, Supabase's public Data API can't see these tables.
+    # The backend owns the tables, so RLS does not restrict it.
+    for table in TABLES:
+        op.execute(f'ALTER TABLE "{table}" ENABLE ROW LEVEL SECURITY')
+
+
+def downgrade() -> None:
+    for table in TABLES:
+        op.execute(f'ALTER TABLE "{table}" DISABLE ROW LEVEL SECURITY')
+```
+
 - [ ] **Step 6: Run the tests (they migrate the test database first)**
 
 ```bash
 uv run pytest
 ```
 
-Expected: `14 passed`.
+Expected: `15 passed`. The inserts in the other tests prove the backend still reads and writes with RLS on.
 
-- [ ] **Step 7: Apply the migration to the real database**
+- [ ] **Step 7: Apply the migrations to the real database**
 
 ```bash
 uv run alembic upgrade head
 ```
 
-In the Supabase dashboard of **owl** → **Table Editor**, the seven tables now exist (plus `alembic_version`, where Alembic records which migrations have run).
+In the Supabase dashboard of **owl** → **Table Editor**, the seven tables now exist (plus `alembic_version`, where Alembic records which migrations have run), and none of them shows an "RLS disabled" warning.
 
 - [ ] **Step 8: Commit**
 
@@ -1037,6 +1103,7 @@ Create `backend/app/startup.py`:
 from sqlalchemy import text, update
 from sqlalchemy.orm import Session
 
+from app.database import tables_without_row_level_security
 from app.models import Document
 
 INTERRUPTED_REASON = "Processing was interrupted, please upload again."
@@ -1055,6 +1122,12 @@ def check_database(session: Session) -> None:
     vector_installed = session.execute(text("SELECT 1 FROM pg_extension WHERE extname = 'vector'")).first()
     if vector_installed is None:
         raise StartupCheckError("The pgvector extension is missing. Run: uv run alembic upgrade head")
+
+    unprotected = tables_without_row_level_security(session)
+    if unprotected:
+        raise StartupCheckError(
+            "Row Level Security is off for: " + ", ".join(unprotected) + ". Add a migration that enables it."
+        )
 
 
 def mark_interrupted_documents(session: Session) -> int:
@@ -1112,7 +1185,7 @@ def health(response: Response) -> dict[str, str]:
 uv run pytest
 ```
 
-Expected: `16 passed`.
+Expected: `17 passed`.
 
 - [ ] **Step 6: See a startup check refuse to start**
 

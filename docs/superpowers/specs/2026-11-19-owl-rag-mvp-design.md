@@ -93,6 +93,7 @@ Constraints and rules:
 - `chunks.user_id` duplicates `documents.user_id` on purpose so searches filter directly; the chunk-writing code guarantees they match.
 - `messages.citations` stores a snapshot (file name, page or heading, quoted text), so old answers stay readable after a file is deleted, shown with the file name and "(deleted)", e.g. "Q3-report.pdf (deleted)".
 - Schema changes are managed with Alembic migrations. The first migration runs `CREATE EXTENSION IF NOT EXISTS vector`.
+- Row Level Security is enabled on every table in the `public` schema (including `alembic_version`) with no policies, so Supabase's automatic Data API cannot read or write them. The backend connects as the table owner, which RLS does not restrict. User isolation inside Owl remains the backend's job (every query filters by `user_id`). The backend refuses to start if any `public` table has RLS disabled.
 - Changing to an embedding model with the same dimension requires re-processing files; a different dimension also requires a migration.
 
 ## 5. Authentication
