@@ -25,6 +25,8 @@ os.environ["JWT_SECRET"] = test_env.get("JWT_SECRET") or "test-only-secret-never
 os.environ["FRONTEND_URL"] = "http://localhost:5173"
 # Tests never call Voyage (a fake embedder stands in), but the setting must exist.
 os.environ["VOYAGE_API_KEY"] = "test-key-never-sent-to-voyage"
+# Tests never call Claude (a fake chat model stands in), but the setting must exist.
+os.environ["ANTHROPIC_API_KEY"] = "test-key-never-sent-to-anthropic"
 
 
 @pytest.fixture(scope="session", autouse=True)

@@ -21,6 +21,9 @@ class Settings(BaseSettings):
     max_upload_mb: int = Field(default=20, gt=0)
     max_pdf_pages: int = Field(default=500, gt=0)
     max_documents_per_user: int = Field(default=50, gt=0)
+    # Claude writes the answers. Create a key at https://platform.claude.com/
+    anthropic_api_key: str = Field(min_length=1)
+    max_questions_per_day: int = Field(default=100, gt=0)
 
     @field_validator("database_url")
     @classmethod
