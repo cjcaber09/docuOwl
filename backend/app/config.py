@@ -14,6 +14,13 @@ class Settings(BaseSettings):
     jwt_secret: str = Field(min_length=32)
     # Where the frontend runs. Used for the CSRF check and to decide if cookies need HTTPS.
     frontend_url: str = "http://localhost:5173"
+    # Voyage AI turns text into embeddings (lists of numbers) so Owl can search by meaning.
+    voyage_api_key: str = Field(min_length=1)
+    embedding_model: str = "voyage-4"
+    # Upload limits.
+    max_upload_mb: int = Field(default=20, gt=0)
+    max_pdf_pages: int = Field(default=500, gt=0)
+    max_documents_per_user: int = Field(default=50, gt=0)
 
     @field_validator("database_url")
     @classmethod
