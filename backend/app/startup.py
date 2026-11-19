@@ -1,7 +1,11 @@
+import shutil
+from pathlib import Path
+
 from sqlalchemy import text, update
 from sqlalchemy.orm import Session
 
 from app.database import tables_without_row_level_security
+from app.documents.validation import UPLOAD_DIR
 from app.models import Document
 
 INTERRUPTED_REASON = "Processing was interrupted, please upload again."
@@ -37,3 +41,16 @@ def mark_interrupted_documents(session: Session) -> int:
     )
     session.commit()
     return result.rowcount
+
+
+def clear_upload_folder(folder: Path = UPLOAD_DIR) -> int:
+    """Temporary uploads left by a previous run belong to documents just marked failed."""
+    if not folder.exists():
+        return 0
+    leftovers = list(folder.iterdir())
+    for path in leftovers:
+        if path.is_dir():
+            shutil.rmtree(path, ignore_errors=True)
+        else:
+            path.unlink(missing_ok=True)
+    return len(leftovers)

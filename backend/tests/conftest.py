@@ -61,3 +61,16 @@ def client(db):
 
     reset_all_limiters()
     return TestClient(app, headers={"Origin": get_settings().frontend_url})
+
+
+@pytest.fixture
+def fake_embedder():
+    """Routes get a FakeEmbedder instead of Voyage for the length of one test."""
+    from app.documents.embeddings import get_embedder
+    from app.main import app
+    from tests.fakes import FakeEmbedder
+
+    embedder = FakeEmbedder()
+    app.dependency_overrides[get_embedder] = lambda: embedder
+    yield embedder
+    app.dependency_overrides.pop(get_embedder, None)

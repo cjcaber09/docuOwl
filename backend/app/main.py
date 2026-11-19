@@ -6,7 +6,9 @@ from fastapi import FastAPI, Response, status
 from app.auth.csrf import require_same_origin
 from app.auth.routes import router as auth_router
 from app.database import SessionLocal, database_is_reachable
-from app.startup import check_database, mark_interrupted_documents
+from app.documents.routes import reject_oversized_uploads
+from app.documents.routes import router as documents_router
+from app.startup import check_database, clear_upload_folder, mark_interrupted_documents
 
 logger = logging.getLogger("owl")
 
@@ -19,12 +21,15 @@ async def lifespan(app: FastAPI):
         interrupted = mark_interrupted_documents(session)
     if interrupted:
         logger.warning("Marked %d interrupted document(s) as failed.", interrupted)
+    clear_upload_folder()
     yield
 
 
 app = FastAPI(title="Owl API", lifespan=lifespan)
-app.middleware("http")(require_same_origin)
+app.middleware("http")(reject_oversized_uploads)
+app.middleware("http")(require_same_origin)  # added last, so it runs first
 app.include_router(auth_router)
+app.include_router(documents_router)
 
 
 @app.get("/api/health")
