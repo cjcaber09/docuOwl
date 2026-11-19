@@ -17,8 +17,8 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from "@/components/ui/sidebar"
-import { sampleConversations, sampleUser } from "@/data/sampleData"
-import { notConnected } from "@/lib/notConnected"
+import { sampleConversations } from "@/data/sampleData"
+import { useCurrentUser, useLogout } from "@/hooks/useAuth"
 import { useUiStore } from "@/stores/uiStore"
 
 export function AppLayout() {
@@ -26,6 +26,8 @@ export function AppLayout() {
   const setSidebarOpen = useUiStore((state) => state.setSidebarOpen)
   const { pathname } = useLocation()
   const activeConversationId = useMatch("/chat/:conversationId")?.params.conversationId
+  const { data: user } = useCurrentUser()
+  const logout = useLogout()
 
   return (
     <SidebarProvider open={sidebarOpen} onOpenChange={setSidebarOpen}>
@@ -86,9 +88,9 @@ export function AppLayout() {
               <ThemeToggle />
             </SidebarMenuItem>
             <SidebarMenuItem>
-              <SidebarMenuButton onClick={() => notConnected("Logging out")}>
+              <SidebarMenuButton onClick={() => logout.mutate()} disabled={logout.isPending}>
                 <LogOut />
-                <span className="truncate">Log out ({sampleUser.email})</span>
+                <span className="truncate">Log out ({user?.email})</span>
               </SidebarMenuButton>
             </SidebarMenuItem>
           </SidebarMenu>

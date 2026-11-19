@@ -4,11 +4,14 @@ import { StatusBadge } from "@/components/StatusBadge"
 import { UploadDropzone } from "@/components/UploadDropzone"
 import { Button } from "@/components/ui/button"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { sampleConfig, sampleDocuments } from "@/data/sampleData"
+import { sampleDocuments } from "@/data/sampleData"
+import { useAppConfig } from "@/hooks/useAppConfig"
 import { formatDate } from "@/lib/format"
 import { notConnected } from "@/lib/notConnected"
 
 export function DocumentsPage() {
+  const storageEnabled = useAppConfig().data?.storageEnabled ?? false
+
   return (
     <div className="mx-auto flex w-full max-w-5xl flex-col gap-6 p-4 md:p-8">
       <div>
@@ -49,7 +52,7 @@ export function DocumentsPage() {
               <TableCell className="hidden sm:table-cell">{formatDate(document.uploadedAt)}</TableCell>
               <TableCell>
                 <div className="flex justify-end gap-1">
-                  {sampleConfig.storageEnabled && document.status === "ready" && (
+                  {storageEnabled && document.status === "ready" && (
                     <Button
                       variant="ghost"
                       size="icon"

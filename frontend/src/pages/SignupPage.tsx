@@ -1,13 +1,15 @@
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { Link } from "react-router"
+import { FormError } from "@/components/FormError"
 import { FormField } from "@/components/FormField"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { notConnected } from "@/lib/notConnected"
+import { useSignup } from "@/hooks/useAuth"
 import { signupSchema, type SignupValues } from "@/lib/validation"
 
 export function SignupPage() {
+  const signup = useSignup()
   const {
     register,
     handleSubmit,
@@ -21,7 +23,7 @@ export function SignupPage() {
         <CardDescription>Upload your documents and ask Owl about them.</CardDescription>
       </CardHeader>
       <CardContent>
-        <form onSubmit={handleSubmit(() => notConnected("Signing up"))} className="grid gap-4" noValidate>
+        <form onSubmit={handleSubmit((values) => signup.mutate(values))} className="grid gap-4" noValidate>
           <FormField id="email" label="Email" type="email" autoComplete="email" error={errors.email?.message} {...register("email")} />
           <FormField
             id="password"
@@ -42,7 +44,10 @@ export function SignupPage() {
           <p className="text-xs text-muted-foreground">
             To answer your questions, the text of your documents is sent to Voyage AI (for search) and Anthropic (for answers).
           </p>
-          <Button type="submit">Sign up</Button>
+          <FormError message={signup.error?.message} />
+          <Button type="submit" disabled={signup.isPending}>
+            {signup.isPending ? "Creating account…" : "Sign up"}
+          </Button>
         </form>
       </CardContent>
       <CardFooter className="justify-center text-sm text-muted-foreground">

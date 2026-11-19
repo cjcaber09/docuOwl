@@ -1,6 +1,7 @@
 import { createBrowserRouter, Navigate } from "react-router"
 import { AppLayout } from "@/layouts/AppLayout"
 import { AuthLayout } from "@/layouts/AuthLayout"
+import { GuestOnly, RequireAuth } from "@/layouts/RequireAuth"
 import { RootLayout } from "@/layouts/RootLayout"
 import { ChatPage } from "@/pages/ChatPage"
 import { DocumentsPage } from "@/pages/DocumentsPage"
@@ -17,19 +18,29 @@ export const router = createBrowserRouter([
       {
         element: <AuthLayout />,
         children: [
-          { path: "/login", element: <LoginPage /> },
-          { path: "/signup", element: <SignupPage /> },
+          {
+            element: <GuestOnly />,
+            children: [
+              { path: "/login", element: <LoginPage /> },
+              { path: "/signup", element: <SignupPage /> },
+            ],
+          },
           { path: "/forgot-password", element: <ForgotPasswordPage /> },
           { path: "/reset-password", element: <ResetPasswordPage /> },
         ],
       },
       {
-        element: <AppLayout />,
+        element: <RequireAuth />,
         children: [
-          { path: "/", element: <Navigate to="/chat" replace /> },
-          { path: "/chat", element: <ChatPage /> },
-          { path: "/chat/:conversationId", element: <ChatPage /> },
-          { path: "/documents", element: <DocumentsPage /> },
+          {
+            element: <AppLayout />,
+            children: [
+              { path: "/", element: <Navigate to="/chat" replace /> },
+              { path: "/chat", element: <ChatPage /> },
+              { path: "/chat/:conversationId", element: <ChatPage /> },
+              { path: "/documents", element: <DocumentsPage /> },
+            ],
+          },
         ],
       },
       { path: "*", element: <NotFoundPage /> },

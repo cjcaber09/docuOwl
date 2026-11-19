@@ -35,15 +35,6 @@ export type SampleConversation = {
   messages: SampleMessage[]
 }
 
-export const sampleConfig = {
-  storageEnabled: true,
-  emailEnabled: true,
-}
-
-export const sampleUser = {
-  email: "you@example.com",
-}
-
 export const sampleDocuments: SampleDocument[] = [
   {
     id: "doc-1",
