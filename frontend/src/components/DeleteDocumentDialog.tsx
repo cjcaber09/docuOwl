@@ -11,9 +11,8 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
 import { Button } from "@/components/ui/button"
-import { notConnected } from "@/lib/notConnected"
 
-export function DeleteDocumentDialog({ filename }: { filename: string }) {
+export function DeleteDocumentDialog({ filename, onConfirm }: { filename: string; onConfirm: () => void }) {
   return (
     <AlertDialog>
       <AlertDialogTrigger asChild>
@@ -30,7 +29,7 @@ export function DeleteDocumentDialog({ filename }: { filename: string }) {
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel>Cancel</AlertDialogCancel>
-          <AlertDialogAction onClick={() => notConnected("Deleting files")}>Delete</AlertDialogAction>
+          <AlertDialogAction onClick={onConfirm}>Delete</AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>

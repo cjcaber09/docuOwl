@@ -29,14 +29,19 @@ function errorMessage(data: unknown, status: number): string {
   return "Something went wrong. Please try again."
 }
 
+function requestBody(body: unknown): { body?: BodyInit; headers?: HeadersInit } {
+  if (body === undefined) return {}
+  // For files, the browser writes the multipart Content-Type (with its boundary) itself.
+  if (body instanceof FormData) return { body }
+  return { body: JSON.stringify(body), headers: { "Content-Type": "application/json" } }
+}
+
 /** Calls Owl's backend. `path` is relative to /api, e.g. "/auth/me". */
 export async function apiFetch<T>(path: string, options: RequestOptions = {}): Promise<T> {
-  const hasBody = options.body !== undefined
   const response = await fetch(`/api${path}`, {
     method: options.method ?? "GET",
     credentials: "same-origin",
-    headers: hasBody ? { "Content-Type": "application/json" } : undefined,
-    body: hasBody ? JSON.stringify(options.body) : undefined,
+    ...requestBody(options.body),
   })
   const text = await response.text()
   const data = text ? parseJson(text) : null

@@ -3,7 +3,7 @@ import { apiFetch } from "@/lib/api"
 
 function stubFetch(status: number, body: unknown) {
   const fetchMock = vi.fn(
-    async () =>
+    async (_url: string, _init?: RequestInit) =>
       new Response(body === null ? null : JSON.stringify(body), {
         status,
         headers: { "Content-Type": "application/json" },
@@ -35,5 +35,17 @@ describe("apiFetch", () => {
     stubFetch(204, null)
 
     await expect(apiFetch("/auth/logout", { method: "POST" })).resolves.toBeNull()
+  })
+
+  it("sends FormData as-is so the browser can set the upload headers", async () => {
+    const fetchMock = stubFetch(201, { id: "d1" })
+    const form = new FormData()
+    form.append("file", new File(["hello"], "notes.md"))
+
+    await apiFetch("/documents", { method: "POST", body: form })
+
+    const init = fetchMock.mock.calls[0][1]
+    expect(init?.body).toBe(form)
+    expect(init?.headers).toBeUndefined()
   })
 })

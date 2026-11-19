@@ -1,7 +1,7 @@
 import type { ComponentProps } from "react"
 import { Loader2 } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
-import type { DocumentStatus } from "@/data/sampleData"
+import type { DocumentStatus } from "@/lib/apiTypes"
 
 type BadgeVariant = ComponentProps<typeof Badge>["variant"]
 

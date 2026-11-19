@@ -1,18 +1,6 @@
 // ALL sample content for the UI lives here.
 // It is deleted page by page when the real backend is connected (build steps 5–7).
 
-export type DocumentStatus = "processing" | "ready" | "failed"
-
-export type SampleDocument = {
-  id: string
-  filename: string
-  fileType: "pdf" | "docx" | "txt" | "md"
-  status: DocumentStatus
-  failureReason: string | null
-  pageCount: number | null
-  uploadedAt: string
-}
-
 export type SampleCitation = {
   id: string
   filename: string
@@ -34,54 +22,6 @@ export type SampleConversation = {
   updatedAt: string
   messages: SampleMessage[]
 }
-
-export const sampleDocuments: SampleDocument[] = [
-  {
-    id: "doc-1",
-    filename: "Terms-of-Service.pdf",
-    fileType: "pdf",
-    status: "ready",
-    failureReason: null,
-    pageCount: 12,
-    uploadedAt: "2026-11-12T09:30:00Z",
-  },
-  {
-    id: "doc-2",
-    filename: "Q3-report.pdf",
-    fileType: "pdf",
-    status: "processing",
-    failureReason: null,
-    pageCount: null,
-    uploadedAt: "2026-11-19T08:05:00Z",
-  },
-  {
-    id: "doc-3",
-    filename: "Support-notes.md",
-    fileType: "md",
-    status: "ready",
-    failureReason: null,
-    pageCount: null,
-    uploadedAt: "2026-11-10T14:12:00Z",
-  },
-  {
-    id: "doc-4",
-    filename: "Scanned-invoice.pdf",
-    fileType: "pdf",
-    status: "failed",
-    failureReason: "No text found, scanned PDFs aren't supported yet.",
-    pageCount: null,
-    uploadedAt: "2026-11-18T17:44:00Z",
-  },
-  {
-    id: "doc-5",
-    filename: "Team-handbook.docx",
-    fileType: "docx",
-    status: "ready",
-    failureReason: null,
-    pageCount: null,
-    uploadedAt: "2026-11-02T11:00:00Z",
-  },
-]
 
 export const sampleConversations: SampleConversation[] = [
   {
