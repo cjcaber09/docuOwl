@@ -73,3 +73,11 @@ def test_missing_anthropic_key_is_an_error(monkeypatch):
 
     with pytest.raises(ValidationError):
         Settings(_env_file=None, database_url="postgresql://u:p@h/db")
+
+
+def test_demo_mode_needs_no_anthropic_key(monkeypatch):
+    monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
+
+    settings = Settings(_env_file=None, database_url="postgresql://u:p@h/db", chat_model="demo")
+
+    assert settings.chat_model == "demo"

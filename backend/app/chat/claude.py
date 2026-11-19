@@ -153,5 +153,10 @@ class ClaudeChatModel:
 
 @lru_cache
 def get_chat_model() -> ChatModel:
-    """One shared Claude client for the whole app. Tests replace it with a fake."""
-    return ClaudeChatModel(anthropic.Anthropic(api_key=get_settings().anthropic_api_key))
+    """One shared chat model for the whole app: Claude, or the free demo. Tests replace it with a fake."""
+    settings = get_settings()
+    if settings.chat_model == "demo":
+        from app.chat.demo import DemoChatModel  # imported here because demo.py itself imports from this file
+
+        return DemoChatModel()
+    return ClaudeChatModel(anthropic.Anthropic(api_key=settings.anthropic_api_key))
