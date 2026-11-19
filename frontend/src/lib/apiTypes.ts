@@ -22,3 +22,37 @@ export type OwlDocument = {
   pageCount: number | null
   createdAt: string
 }
+
+export type Citation = {
+  filename: string
+  location: string
+  quote: string
+  deleted: boolean
+}
+
+export type ChatMessage = {
+  id: string
+  role: "user" | "assistant"
+  content: string
+  citations: Citation[]
+  createdAt: string
+}
+
+export type ConversationSummary = {
+  id: string
+  title: string
+  updatedAt: string
+}
+
+export type Conversation = {
+  id: string
+  title: string
+  messages: ChatMessage[]
+}
+
+// One line of a streamed answer.
+export type AnswerEvent =
+  | { type: "text"; text: string }
+  | { type: "citation"; citation: Citation }
+  | { type: "done"; message: ChatMessage | null; title: string | null }
+  | { type: "error"; message: string }
