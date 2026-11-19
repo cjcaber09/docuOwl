@@ -1,16 +1,31 @@
+import logging
 import uuid
+from typing import Annotated
 
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi.responses import StreamingResponse
 from sqlalchemy import delete, select
 from sqlalchemy.orm import Session
 
 from app.auth.dependencies import CurrentUser, DbSession
-from app.chat.schemas import ConversationOut, ConversationSummary, message_out
+from app.chat.answering import TROUBLE, recent_history, save_question, stream_answer
+from app.chat.claude import ChatModel, get_chat_model
+from app.chat.retrieval import find_passages, has_ready_documents
+from app.chat.schemas import ConversationOut, ConversationSummary, QuestionIn, message_out
+from app.chat.usage import use_one_question
+from app.config import get_settings
+from app.documents.embeddings import Embedder, EmbeddingError, get_embedder
 from app.models import Conversation, Document, Message
+
+logger = logging.getLogger("owl.chat")
 
 router = APIRouter(prefix="/api/conversations", tags=["conversations"])
 
 NOT_FOUND = "Conversation not found."
+NO_DOCUMENTS = "Upload a document and wait until it's Ready, then ask your question."
+
+ChatModelDep = Annotated[ChatModel, Depends(get_chat_model)]
+EmbedderDep = Annotated[Embedder, Depends(get_embedder)]
 
 
 def own_conversation(db: Session, user_id: uuid.UUID, conversation_id: uuid.UUID) -> Conversation:
@@ -71,3 +86,40 @@ def delete_conversation(conversation_id: uuid.UUID, user: CurrentUser, db: DbSes
     db.commit()
     if result.rowcount == 0:
         raise HTTPException(status.HTTP_404_NOT_FOUND, NOT_FOUND)
+
+
+@router.post("/{conversation_id}/messages")
+def ask_question(
+    conversation_id: uuid.UUID,
+    body: QuestionIn,
+    user: CurrentUser,
+    db: DbSession,
+    chat: ChatModelDep,
+    embedder: EmbedderDep,
+) -> StreamingResponse:
+    # Everything that can fail with a plain HTTP error happens before the stream starts.
+    conversation = own_conversation(db, user.id, conversation_id)
+    if not has_ready_documents(db, user.id):
+        raise HTTPException(status.HTTP_409_CONFLICT, NO_DOCUMENTS)
+    limit = get_settings().max_questions_per_day
+    if not use_one_question(db, user.id, limit):
+        raise HTTPException(
+            status.HTTP_429_TOO_MANY_REQUESTS,
+            f"You've asked {limit} questions today. The limit resets at midnight UTC.",
+        )
+
+    question = save_question(db, conversation, body.content)
+    history = recent_history(db, conversation.id, question)
+    search_text = chat.rewrite_question(history, body.content) if history else body.content
+    try:
+        [query_embedding] = embedder.embed([search_text], input_type="query")
+    except EmbeddingError:
+        logger.exception("Embedding the question failed")
+        raise HTTPException(status.HTTP_503_SERVICE_UNAVAILABLE, TROUBLE)
+    passages = find_passages(db, user.id, query_embedding)
+    first_answer = all(message["role"] != "assistant" for message in history)
+
+    return StreamingResponse(
+        stream_answer(chat, conversation.id, user.id, history, passages, body.content, first_answer),
+        media_type="application/x-ndjson",
+    )

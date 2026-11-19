@@ -76,3 +76,16 @@ def fake_embedder():
     app.dependency_overrides[get_embedder] = lambda: embedder
     yield embedder
     app.dependency_overrides.pop(get_embedder, None)
+
+
+@pytest.fixture
+def fake_chat():
+    """Routes get a FakeChatModel instead of Claude for the length of one test."""
+    from app.chat.claude import get_chat_model
+    from app.main import app
+    from tests.fakes import FakeChatModel
+
+    model = FakeChatModel()
+    app.dependency_overrides[get_chat_model] = lambda: model
+    yield model
+    app.dependency_overrides.pop(get_chat_model, None)
