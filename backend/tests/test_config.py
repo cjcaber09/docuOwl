@@ -46,3 +46,19 @@ def test_cookies_are_secure_only_for_https():
 
     assert local.cookie_secure is False
     assert online.cookie_secure is True
+
+
+def test_upload_settings_have_the_spec_defaults():
+    settings = Settings(_env_file=None, database_url="postgresql://u:p@h/db")
+
+    assert settings.embedding_model == "voyage-4"
+    assert settings.max_upload_mb == 20
+    assert settings.max_pdf_pages == 500
+    assert settings.max_documents_per_user == 50
+
+
+def test_missing_voyage_key_is_an_error(monkeypatch):
+    monkeypatch.delenv("VOYAGE_API_KEY", raising=False)
+
+    with pytest.raises(ValidationError):
+        Settings(_env_file=None, database_url="postgresql://u:p@h/db")

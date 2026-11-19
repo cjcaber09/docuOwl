@@ -1,5 +1,5 @@
 from app.models import Document, User
-from app.startup import INTERRUPTED_REASON, check_database, mark_interrupted_documents
+from app.startup import INTERRUPTED_REASON, check_database, clear_upload_folder, mark_interrupted_documents
 
 
 def test_check_database_passes_on_a_migrated_database(db):
@@ -24,3 +24,10 @@ def test_processing_documents_are_marked_failed_at_startup(db):
     assert stuck.failure_reason == INTERRUPTED_REASON
     assert finished.status == "ready"
     assert finished.failure_reason is None
+
+
+def test_leftover_temporary_uploads_are_removed(tmp_path):
+    (tmp_path / "old.upload").write_bytes(b"left from a crash")
+
+    assert clear_upload_folder(tmp_path) == 1
+    assert list(tmp_path.iterdir()) == []

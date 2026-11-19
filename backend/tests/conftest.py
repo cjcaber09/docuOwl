@@ -23,6 +23,8 @@ os.environ["DATABASE_URL"] = test_env["DATABASE_URL"]
 # A throwaway signing secret for tests only, and the frontend address the CSRF check expects.
 os.environ["JWT_SECRET"] = test_env.get("JWT_SECRET") or "test-only-secret-never-used-outside-tests-0123456789"
 os.environ["FRONTEND_URL"] = "http://localhost:5173"
+# Tests never call Voyage (a fake embedder stands in), but the setting must exist.
+os.environ["VOYAGE_API_KEY"] = "test-key-never-sent-to-voyage"
 
 
 @pytest.fixture(scope="session", autouse=True)
@@ -59,3 +61,16 @@ def client(db):
 
     reset_all_limiters()
     return TestClient(app, headers={"Origin": get_settings().frontend_url})
+
+
+@pytest.fixture
+def fake_embedder():
+    """Routes get a FakeEmbedder instead of Voyage for the length of one test."""
+    from app.documents.embeddings import get_embedder
+    from app.main import app
+    from tests.fakes import FakeEmbedder
+
+    embedder = FakeEmbedder()
+    app.dependency_overrides[get_embedder] = lambda: embedder
+    yield embedder
+    app.dependency_overrides.pop(get_embedder, None)

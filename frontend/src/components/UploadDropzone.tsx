@@ -1,10 +1,9 @@
 import { useRef, useState, type DragEvent } from "react"
 import { Upload } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { notConnected } from "@/lib/notConnected"
 import { cn } from "@/lib/utils"
 
-export function UploadDropzone() {
+export function UploadDropzone({ onFiles }: { onFiles: (files: File[]) => void }) {
   // Only this component needs to know about dragging, so it's local state, not Zustand.
   const [isDragging, setIsDragging] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -12,7 +11,7 @@ export function UploadDropzone() {
   function handleDrop(event: DragEvent<HTMLDivElement>) {
     event.preventDefault()
     setIsDragging(false)
-    notConnected("Uploading")
+    if (event.dataTransfer.files.length) onFiles(Array.from(event.dataTransfer.files))
   }
 
   return (
@@ -43,7 +42,7 @@ export function UploadDropzone() {
         multiple
         className="hidden"
         onChange={(event) => {
-          if (event.target.files?.length) notConnected("Uploading")
+          if (event.target.files?.length) onFiles(Array.from(event.target.files))
           event.target.value = ""
         }}
       />

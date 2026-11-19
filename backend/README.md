@@ -6,7 +6,7 @@ Every table has Row Level Security turned on, so Supabase's public Data API can'
 ## First-time setup
 
 1. Install uv: `winget install --id=astral-sh.uv -e`
-2. Copy `.env.example` to `.env` (your **owl** Supabase project) and to `.env.test` (your separate **owl-test** project).
+2. Copy `.env.example` to `.env` (your **owl** Supabase project, plus your Voyage AI key) and to `.env.test` (your separate **owl-test** project).
 3. From this folder:
 
 ```bash
