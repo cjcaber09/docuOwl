@@ -1,14 +1,11 @@
 import uuid
 from datetime import datetime
 
-from pydantic import BaseModel, ConfigDict
-from pydantic.alias_generators import to_camel
+from app.schemas import CamelModel
 
 
-class DocumentOut(BaseModel):
-    """What the Documents page sees. Python names (file_type) leave as camelCase JSON (fileType)."""
-
-    model_config = ConfigDict(from_attributes=True, alias_generator=to_camel, validate_by_name=True, serialize_by_alias=True)
+class DocumentOut(CamelModel):
+    """What the Documents page sees."""
 
     id: uuid.UUID
     filename: str

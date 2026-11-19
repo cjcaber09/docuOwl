@@ -5,6 +5,7 @@ from fastapi import FastAPI, Response, status
 
 from app.auth.csrf import require_same_origin
 from app.auth.routes import router as auth_router
+from app.chat.routes import router as chat_router
 from app.database import SessionLocal, database_is_reachable
 from app.documents.routes import reject_oversized_uploads
 from app.documents.routes import router as documents_router
@@ -30,6 +31,7 @@ app.middleware("http")(reject_oversized_uploads)
 app.middleware("http")(require_same_origin)  # added last, so it runs first
 app.include_router(auth_router)
 app.include_router(documents_router)
+app.include_router(chat_router)
 
 
 @app.get("/api/health")
