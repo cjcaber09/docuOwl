@@ -1,5 +1,5 @@
 import { Download, FileText } from "lucide-react"
-import { DeleteDocumentDialog } from "@/components/DeleteDocumentDialog"
+import { ConfirmDeleteDialog } from "@/components/ConfirmDeleteDialog"
 import { StatusBadge } from "@/components/StatusBadge"
 import { UploadDropzone } from "@/components/UploadDropzone"
 import { Button } from "@/components/ui/button"
@@ -79,8 +79,9 @@ export function DocumentsPage() {
                         <Download />
                       </Button>
                     )}
-                    <DeleteDocumentDialog
-                      filename={document.filename}
+                    <ConfirmDeleteDialog
+                      itemName={document.filename}
+                      description="Owl will forget everything in this file. Earlier answers that cited it stay readable."
                       onConfirm={() => deleteDocument.mutate(document.id)}
                     />
                   </div>

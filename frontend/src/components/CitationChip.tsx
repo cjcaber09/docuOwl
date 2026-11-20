@@ -1,9 +1,10 @@
 import { FileText } from "lucide-react"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import type { SampleCitation } from "@/data/sampleData"
+import type { Citation } from "@/lib/apiTypes"
+import { citationLabel } from "@/lib/format"
 
-export function CitationChip({ citation }: { citation: SampleCitation }) {
-  const label = `${citation.filename}${citation.deleted ? " (deleted)" : ""} · ${citation.location}`
+export function CitationChip({ citation }: { citation: Citation }) {
+  const label = citationLabel(citation)
 
   return (
     <Popover>

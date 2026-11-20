@@ -2,16 +2,16 @@ import { useState, type FormEvent, type KeyboardEvent } from "react"
 import { SendHorizontal } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
-import { notConnected } from "@/lib/notConnected"
 
-export function ChatInput() {
+export function ChatInput({ onSend, disabled = false }: { onSend: (question: string) => void; disabled?: boolean }) {
   const [question, setQuestion] = useState("")
-  const canSend = question.trim().length > 0
+  const canSend = question.trim().length > 0 && !disabled
 
   function send(event?: FormEvent) {
     event?.preventDefault()
     if (!canSend) return
-    notConnected("Asking questions")
+    onSend(question.trim())
+    setQuestion("")
   }
 
   function handleKeyDown(event: KeyboardEvent<HTMLTextAreaElement>) {
