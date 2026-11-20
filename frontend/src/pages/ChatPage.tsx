@@ -32,6 +32,8 @@ export function ChatPage() {
   const showPendingQuestion = !(lastMessage?.role === "user" && lastMessage.content === current?.question)
   const busy = current !== null && current.error === null
   const notFound = conversation.error instanceof ApiError && conversation.error.status === 404
+  // A failed refresh keeps the messages already shown; only a first load that fails has nothing to show.
+  const loadFailed = conversation.isError && !conversation.data
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
@@ -39,8 +41,8 @@ export function ChatPage() {
         <div className="mx-auto flex max-w-3xl flex-col gap-6 p-4 md:p-8">
           {notFound ? (
             <p className="text-center text-muted-foreground">This conversation doesn't exist.</p>
-          ) : conversation.isError ? (
-            <p className="text-center text-destructive">Couldn't load this conversation. {conversation.error.message}</p>
+          ) : loadFailed ? (
+            <p className="text-center text-destructive">Couldn't load this conversation. {conversation.error?.message}</p>
           ) : conversationId && conversation.isPending && !current ? (
             <p className="text-center text-muted-foreground">Loading the conversation…</p>
           ) : messages.length === 0 && !current ? (
