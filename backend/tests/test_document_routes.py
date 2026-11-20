@@ -5,17 +5,10 @@ from sqlalchemy import func, select
 
 from app.config import get_settings
 from app.models import Chunk, Document, User
+from tests.helpers import sign_up, upload
 from tests.sample_files import make_pdf
 
 NOTES = b"# Refunds\nWithin 30 days."
-
-
-def sign_up(client, email="reader@example.com"):
-    client.post("/api/auth/signup", json={"email": email, "password": "correct horse battery"})
-
-
-def upload(client, filename, content):
-    return client.post("/api/documents", files={"file": (filename, content)})
 
 
 def test_upload_is_processed_and_listed(client, fake_embedder):

@@ -12,20 +12,26 @@ import {
 } from "@/components/ui/alert-dialog"
 import { Button } from "@/components/ui/button"
 
-export function DeleteDocumentDialog({ filename, onConfirm }: { filename: string; onConfirm: () => void }) {
+type ConfirmDeleteDialogProps = {
+  itemName: string
+  description: string
+  onConfirm: () => void
+  triggerClassName?: string
+}
+
+/** A trash button that deletes only after the user confirms. Used for documents and conversations. */
+export function ConfirmDeleteDialog({ itemName, description, onConfirm, triggerClassName }: ConfirmDeleteDialogProps) {
   return (
     <AlertDialog>
       <AlertDialogTrigger asChild>
-        <Button variant="ghost" size="icon" aria-label={`Delete ${filename}`}>
+        <Button variant="ghost" size="icon" className={triggerClassName} aria-label={`Delete ${itemName}`}>
           <Trash2 />
         </Button>
       </AlertDialogTrigger>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>Delete {filename}?</AlertDialogTitle>
-          <AlertDialogDescription>
-            Owl will forget everything in this file. Earlier answers that cited it stay readable.
-          </AlertDialogDescription>
+          <AlertDialogTitle>Delete {itemName}?</AlertDialogTitle>
+          <AlertDialogDescription>{description}</AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel>Cancel</AlertDialogCancel>

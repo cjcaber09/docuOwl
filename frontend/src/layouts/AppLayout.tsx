@@ -1,5 +1,6 @@
 import { FileText, LogOut, MessageSquare, Plus } from "lucide-react"
-import { Link, Outlet, useLocation, useMatch } from "react-router"
+import { Link, Outlet, useLocation, useMatch, useNavigate } from "react-router"
+import { ConfirmDeleteDialog } from "@/components/ConfirmDeleteDialog"
 import { OwlLogo } from "@/components/OwlLogo"
 import { ThemeToggle } from "@/components/ThemeToggle"
 import {
@@ -17,17 +18,28 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from "@/components/ui/sidebar"
-import { sampleConversations } from "@/data/sampleData"
 import { useCurrentUser, useLogout } from "@/hooks/useAuth"
+import { useConversations, useDeleteConversation } from "@/hooks/useConversations"
 import { useUiStore } from "@/stores/uiStore"
 
 export function AppLayout() {
   const sidebarOpen = useUiStore((state) => state.sidebarOpen)
   const setSidebarOpen = useUiStore((state) => state.setSidebarOpen)
   const { pathname } = useLocation()
+  const navigate = useNavigate()
   const activeConversationId = useMatch("/chat/:conversationId")?.params.conversationId
   const { data: user } = useCurrentUser()
   const logout = useLogout()
+  const conversations = useConversations()
+  const deleteConversation = useDeleteConversation()
+
+  function remove(id: string) {
+    deleteConversation.mutate(id, {
+      onSuccess: () => {
+        if (id === activeConversationId) navigate("/chat", { replace: true })
+      },
+    })
+  }
 
   return (
     <SidebarProvider open={sidebarOpen} onOpenChange={setSidebarOpen}>
@@ -67,14 +79,20 @@ export function AppLayout() {
             <SidebarGroupLabel>Conversations</SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
-                {sampleConversations.map((conversation) => (
+                {conversations.data?.map((conversation) => (
                   <SidebarMenuItem key={conversation.id}>
-                    <SidebarMenuButton asChild isActive={conversation.id === activeConversationId}>
+                    <SidebarMenuButton asChild isActive={conversation.id === activeConversationId} className="pr-8">
                       <Link to={`/chat/${conversation.id}`}>
                         <MessageSquare />
                         <span>{conversation.title}</span>
                       </Link>
                     </SidebarMenuButton>
+                    <ConfirmDeleteDialog
+                      itemName={conversation.title}
+                      description="This conversation and its messages will be deleted. Your documents stay."
+                      onConfirm={() => remove(conversation.id)}
+                      triggerClassName="absolute top-1 right-1 size-6 focus-visible:opacity-100 md:opacity-0 md:group-hover/menu-item:opacity-100"
+                    />
                   </SidebarMenuItem>
                 ))}
               </SidebarMenu>

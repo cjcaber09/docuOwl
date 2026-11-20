@@ -4,6 +4,7 @@ import { ApiError, apiFetch } from "@/lib/api"
 import type { User } from "@/lib/apiTypes"
 import { CURRENT_USER_KEY } from "@/lib/queryClient"
 import type { LoginValues, SignupValues } from "@/lib/validation"
+import { useAnswerStore } from "@/stores/answerStore"
 
 /** The logged-in user, or null when nobody is logged in. */
 export function useCurrentUser() {
@@ -56,6 +57,7 @@ export function useLogout() {
     onSettled: () => {
       // Forget every piece of this user's data so the next person on this browser sees none of it.
       queryClient.clear()
+      useAnswerStore.getState().clear()
       queryClient.setQueryData(CURRENT_USER_KEY, null)
       navigate("/login", { replace: true })
     },

@@ -6,7 +6,7 @@ Every table has Row Level Security turned on, so Supabase's public Data API can'
 ## First-time setup
 
 1. Install uv: `winget install --id=astral-sh.uv -e`
-2. Copy `.env.example` to `.env` (your **owl** Supabase project, plus your Voyage AI key) and to `.env.test` (your separate **owl-test** project).
+2. Copy `.env.example` to `.env` (your **owl** Supabase project, plus your Voyage AI and Anthropic keys) and to `.env.test` (your separate **owl-test** project).
 3. From this folder:
 
 ```bash
@@ -23,6 +23,7 @@ uv run alembic upgrade head  # create or update the tables
 | `uv run alembic revision --autogenerate -m "describe the change"` | Create a migration after changing `app/models.py` (always read it before applying) |
 | `uv run alembic upgrade head` | Apply new migrations to the database in `.env` |
 | `uv run alembic downgrade -1` | Undo the most recent migration |
+| `CHAT_MODEL=demo` in `.env` | Free demo answers (quotes the best passage) instead of Claude; no Anthropic key needed |
 | `uv run python -m scripts.reset_password <email>` | Set a new password for a user and log them out everywhere (run it in PowerShell, which can hide the typed password) |
 
 ## When the server refuses to start

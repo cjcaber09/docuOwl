@@ -62,3 +62,22 @@ def test_missing_voyage_key_is_an_error(monkeypatch):
 
     with pytest.raises(ValidationError):
         Settings(_env_file=None, database_url="postgresql://u:p@h/db")
+
+
+def test_daily_question_limit_defaults_to_100():
+    assert Settings(_env_file=None, database_url="postgresql://u:p@h/db").max_questions_per_day == 100
+
+
+def test_missing_anthropic_key_is_an_error(monkeypatch):
+    monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
+
+    with pytest.raises(ValidationError):
+        Settings(_env_file=None, database_url="postgresql://u:p@h/db")
+
+
+def test_demo_mode_needs_no_anthropic_key(monkeypatch):
+    monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
+
+    settings = Settings(_env_file=None, database_url="postgresql://u:p@h/db", chat_model="demo")
+
+    assert settings.chat_model == "demo"
