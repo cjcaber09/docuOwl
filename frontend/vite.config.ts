@@ -13,11 +13,13 @@ export default defineConfig({
   server: {
     // The browser only ever talks to Vite's address; Vite passes /api requests on to the backend.
     proxy: {
-      "/api": "http://localhost:8000",
+      "/api": process.env.OWL_API_URL ?? "http://localhost:8000",
     },
   },
   test: {
     environment: "jsdom",
+    // Only unit tests; the Playwright tests in e2e/ run with `npm run e2e`.
+    include: ["src/**/*.test.{ts,tsx}"],
     setupFiles: ["./src/test/setup.ts"],
   },
 })
